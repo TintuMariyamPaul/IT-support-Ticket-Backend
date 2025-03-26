@@ -36,7 +36,9 @@ exports.createAccount = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     // 1. check is User exists
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findOne({ email: req.body.email }).select(
+      "+password"
+    );
     if (!user) {
       return res.status(400).send({
         message: "User does not exist",
@@ -69,5 +71,3 @@ exports.loginUser = async (req, res) => {
     });
   }
 };
-
-
