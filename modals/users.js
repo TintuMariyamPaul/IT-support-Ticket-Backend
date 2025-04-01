@@ -14,11 +14,13 @@ const userScema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
+      unique: true,
     },
     role: {
       type: String,
       required: true,
-      enum: ["user", "engineer", "admin"],
+      enum: ["user", "admin"],
+      default: "user",
     },
     password: {
       type: String,
@@ -35,5 +37,12 @@ const userScema = new mongoose.Schema(
     timestamps: true, // enable time stamp
   }
 );
+
+userScema.pre("save", (next) => {
+  if (this.role !== "engineer") {
+    this.assignedTickets = [];
+  }
+  next();
+});
 
 module.exports = mongoose.model("users", userScema);
