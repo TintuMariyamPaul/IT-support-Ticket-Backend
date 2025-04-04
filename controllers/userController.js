@@ -1,4 +1,5 @@
 const User = require("../modals/users");
+const Engineer = require("../modals/engineers");
 const bcrypt = require("bcryptjs");
 // const { tokenVerify } = require("./../middleware/authMiddleware");
 
@@ -21,12 +22,12 @@ const bcrypt = require("bcryptjs");
 //creating ADMIN and USER
 const createAccount = async (req, res) => {
   try {
-    console.log(req.body);
-
-    //1. If the user already exists
-    const user = await User.findOne({ email: req.body.email });
-    //2. if user exists, send an error response
-    if (user) {
+    // console.log(req.body);
+    //1. If the user or Engineer already exists
+    const isUserExist = await User.findOne({ email: req.body.email });
+    const isEngineerExist = await Engineer.findOne({ email: req.body.email });
+    //2. if user or Engineers exists, send an error response
+    if (isUserExist || isEngineerExist) {
       return res.status(401).json({
         message: "User already exist",
         success: false,
@@ -38,7 +39,6 @@ const createAccount = async (req, res) => {
 
     // 4. create new UserActivation, save in DB
     const newUser = new User(req.body);
-
     await newUser.save();
 
     res.status(201).json({

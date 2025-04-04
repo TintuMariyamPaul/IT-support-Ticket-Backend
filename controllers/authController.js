@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../modals/users");
+const Engineer = require("../modals/engineers");
 
 // //creating ADMIN and USER
 // const createAccount = async (req, res) => {
@@ -38,16 +39,22 @@ const User = require("../modals/users");
 const loginUser = async (req, res) => {
   try {
     // 1. check is User exists
-    const user = await User.findOne({ email: req.body.email }).select(
+    let user = await User.findOne({ email: req.body.email }).select(
       "+password"
     );
+    if (!user) {
+      user = await Engineer.findOne({ email: req.body.email }).select(
+        "+password"
+      );
+    }
+
     if (!user) {
       return res.status(404).json({
         message: "User does not exist",
         success: false,
       });
-    }    
-    console.log(user);
+    }
+    // console.log(user);
 
     //2. check if the password is correct
     const isValid = await bcrypt.compare(req.body.password, user.password);
@@ -66,10 +73,12 @@ const loginUser = async (req, res) => {
         expiresIn: "1d", // one day
       }
     );
+    // yuayuds
     res.status(200).json({
       message: `${user?.role} Login successfully`,
       success: true,
       token: token,
+      user
     });
   } catch (error) {
     res.status(500).json({
