@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const Engineers = require("../modals/engineers");
+const User = require("../modals/users");
 
 //creating ENGINEERS
 const createEngineerAccount = async (req, res) => {
@@ -13,10 +14,11 @@ const createEngineerAccount = async (req, res) => {
       department,
       designation,
     } = req.body;
-    const engineer = await Engineers.findOne({ email: email });
-    if (engineer) {
+    const isUserExist = await User.findOne({ email: req.body.email });
+    const isEngineerExist = await Engineers.findOne({ email: req.body.email });
+    if (isUserExist || isEngineerExist) {
       return res.status(401).json({
-        message: "Engineer already exist",
+        message: "Email already exist",
         success: false,
       });
     }
