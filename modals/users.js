@@ -45,4 +45,4 @@ userScema.pre("save", (next) => {
   next();
 });
 
-module.exports = mongoose.model("users", userScema);
+module.exports = mongoose.model("User", userScema);
