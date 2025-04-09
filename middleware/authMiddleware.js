@@ -21,85 +21,41 @@ const tokenVerify = (req, res, next) => {
   }
 };
 
-const adminVerify = (req, res, next) => {
-  try {
-    if (!req.headers.authorization) {
-      return res.status(403).json({
-        message: "Access denied. No token provided.",
+const verifyRoles = (allowedRoles = []) => {
+  return (req, res, next) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+        return res.status(403).json({
+          message: "Access denied. No token provided.",
+          success: false,
+        });
+      }
+
+      const token = authHeader.split(" ")[1];
+      const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
+
+      if (!allowedRoles.includes(decodedToken.role)) {
+        return res.status(403).json({
+          message: `Access denied. Allowed roles: ${allowedRoles.join(", ")}`,
+          success: false,
+        });
+      }
+
+      req.userId = decodedToken.userId;
+      req.role = decodedToken.role;
+
+      next();
+    } catch (error) {
+      res.status(403).json({
+        message: error.message,
         success: false,
       });
     }
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
-    if (decodedToken.role !== "admin") {
-      return res.status(403).json({
-        message: "Access denied. Admins only.",
-        success: false,
-      });
-    }
-    req.userId = decodedToken.userId;
-    req.role = decodedToken.role;
-    next();
-  } catch (error) {
-    res.status(403).json({
-      message: error.message,
-      success: false,
-    });
-  }
+  };
 };
 
-const userVerify = (req, res, next) => {
-  try {
-    if (!req.headers.authorization) {
-      return res.status(403).json({
-        message: "Access denied. No token provided.",
-        success: false,
-      });
-    }
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
-    if (decodedToken.role !== "user") {
-      return res.status(403).json({
-        message: "Access denied. User only.",
-        success: false,
-      });
-    }
-    req.userId = decodedToken.userId;
-    req.role = decodedToken.role;
-    next();
-  } catch (error) {
-    res.status(403).json({
-      message: error.message,
-      success: false,
-    });
-  }
+module.exports = {
+  tokenVerify,
+  verifyRoles,
 };
-
-const engineerVerify = (req, res, next) => {
-  try {
-    if (!req.headers.authorization) {
-      return res.status(403).json({
-        message: "Access denied. No token provided.",
-        success: false,
-      });
-    }
-    const token = req.headers.authorization.split(" ")[1];
-    const decodedToken = jwt.verify(token, process.env.SECRET_KEY);
-    if (decodedToken.role !== "engineer") {
-      return res.status(403).json({
-        message: "Access denied. Engineer only.",
-        success: false,
-      });
-    }
-    req.userId = decodedToken.userId;
-    req.role = decodedToken.role;
-    next();
-  } catch (error) {
-    res.status(403).json({
-      message: error.message,
-      success: false,
-    });
-  }
-};
-
-module.exports = { tokenVerify, adminVerify, userVerify, engineerVerify };

@@ -22,7 +22,13 @@ const createTickets = async (req, res) => {
 
 const getAllTickets = async (req, res) => {
   try {
-    const tickets = await Ticket.find();
+    const query = {};
+    if (req.query.status) {
+      query.status = req.query.status;
+    }
+    const tickets = await Ticket.find(query)
+      .populate("assignedTo")
+      .populate("createdBy");
     res.status(200).json({
       success: true,
       message: "Ticket List Fetch successfully",
@@ -37,16 +43,77 @@ const getAllTickets = async (req, res) => {
   }
 };
 
+const getAssignedTickets = async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ assignedTo: req.userId })
+      .populate("assignedTo")
+      .populate("createdBy");
+    res.status(200).json({
+      success: true,
+      message: "Tickets assigned to engineer",
+      count: tickets.length,
+      tickets,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+      success: false,
+    });
+  }
+};
+
+const getCreatedByTickets = async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ createdBy: req.userId })
+      .populate("assignedTo")
+      .populate("createdBy");
+    res.status(200).json({
+      success: true,
+      message: "Tickets assigned to engineer",
+      count: tickets.length,
+      tickets,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+      success: false,
+    });
+  }
+};
+
+const updateTicket = async (req, res) => {
+  const { title, description, department } = req.body;
+  try {
+    if (req.role === "user") {
+      // console.log("userId", req.userId.toString());
+      // console.log("Ticket userId", req.ticket.createdBy.toString());
+
+      if (req.ticket.createdBy.toString() !== req.userId.toString()) {
+        res.status(400).json({ success: false, message: "Not created User" });
+      }
+    }
+    const ticket = await Ticket.findByIdAndUpdate(
+      req.ticket._id,
+      { title, department, description },
+      { new: true, runValidators: true }
+    );
+    res.status(200).json({
+      message: "Single Ticket Update successfully",
+      success: true,
+      ticket,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+      success: false,
+    });
+  }
+};
+
 const assignTicket = async (req, res) => {
-  const ticketId = req.params.id;
   const { engineerId } = req.body;
   try {
-    const ticket = await Ticket.findById(ticketId);
-    if (!ticket) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Ticket not found" });
-    }
+    const ticket = req.ticket;
     const engineer = await Engineer.findById(engineerId);
 
     if (!engineer) {
@@ -65,8 +132,8 @@ const assignTicket = async (req, res) => {
     ticket.status = "Assigned";
     await ticket.save();
 
-    if (!engineer.assignedTickets.includes(ticketId)) {
-      engineer.assignedTickets.push(ticketId);
+    if (!engineer.assignedTickets.includes(ticket._id)) {
+      engineer.assignedTickets.push(ticket._id);
       await engineer.save();
     }
 
@@ -82,31 +149,20 @@ const assignTicket = async (req, res) => {
 };
 
 const statusUpdate = async (req, res) => {
-  const ticketId = req.params.id;
   const { status } = req.body;
   const engineerId = req.userId;
   try {
+    const ticket = req.ticket;
     if (!["In Progress", "Completed"].includes(status)) {
       return res
         .status(400)
         .json({ success: false, message: "Invalid status" });
     }
-    const ticket = await Ticket.findById(ticketId);
-    if (!ticket) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Ticket not found" });
-    }
-
-    console.log("engineerId", engineerId);
-    console.log("ticket assigned id", ticket.assignedTo.toString());
-
     if (ticket.assignedTo.toString() !== engineerId) {
       return res
         .status(403)
         .json({ success: false, message: "Not your ticket" });
     }
-
     ticket.status = status;
     await ticket.save();
     res.status(200).json({
@@ -123,20 +179,10 @@ const statusUpdate = async (req, res) => {
 };
 
 const deleteTicket = async (req, res) => {
-  const { id } = req.params;
   try {
-    const ticket = await Ticket.findByIdAndDelete(id);
-    if (!ticket) {
-      return res
-        .status(404)
-        .json({ message: "Ticket not found", success: false });
-    }
-    if (ticket.assignedTo) {
-      return res.status(400).json({
-        message: "Ticket Already Assigned Cannot delete",
-        success: false,
-      });
-    }
+    const ticket = req.ticket;
+
+    await Ticket.findByIdAndDelete(ticket);
 
     res.status(200).json({
       message: "Ticket delete successfully",
@@ -154,6 +200,9 @@ module.exports = {
   createTickets,
   assignTicket,
   getAllTickets,
+  getAssignedTickets,
+  getCreatedByTickets,
+  updateTicket,
   statusUpdate,
   deleteTicket,
 };
