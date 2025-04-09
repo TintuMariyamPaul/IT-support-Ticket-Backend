@@ -47,7 +47,11 @@ const createEngineerAccount = async (req, res) => {
 // Get All engineers
 const getAllEngineers = async (req, res) => {
   try {
-    const engineers = await Engineers.find({ role: "engineer" });
+    const query = {};
+    if (req.query.department) {
+      query.department = req.query.department;
+    }
+    const engineers = await Engineers.find(query);
     res.status(200).json({
       message: "Engineer List Fetch successfully",
       success: true,
@@ -108,7 +112,7 @@ const updateEngineer = async (req, res) => {
       });
     }
     res.status(200).json({
-      message: "Single engineer Fetch successfully",
+      message: "Single engineer Update successfully",
       success: true,
       engineer: engineer,
     });
