@@ -10,7 +10,7 @@ const checkTicketAssignment = async (req, res, next) => {
         .json({ success: false, message: "Ticket not found" });
     }
     // console.log("assss", ticket.assignedTo);
-    
+
     if (ticket.assignedTo) {
       return res.status(400).json({
         success: false,
@@ -40,4 +40,29 @@ const getTicketById = async (req, res, next) => {
   }
 };
 
-module.exports = { checkTicketAssignment, getTicketById };
+const getAllTicketsMiddlware = (filtertype = null) => {
+  return async (req, res, next) => {
+    try {
+      const query = {};
+      if (req.query.status) {
+        query.status = req.query.status;
+      }
+      if(filtertype==="assigned"){
+        query.assignedTo = req.userId
+      }
+
+      if(filtertype==="created"){
+        query.createdBy = req.userId;
+      }
+      const tickets = await Ticket.find(query)
+        .populate("assignedTo")
+        .populate("createdBy");
+      req.tickets = tickets;
+      next();
+    } catch (error) {
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  };
+};
+
+module.exports = { checkTicketAssignment, getTicketById, getAllTicketsMiddlware };

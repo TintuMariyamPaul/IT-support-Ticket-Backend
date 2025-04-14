@@ -13,18 +13,26 @@ const { verifyRoles } = require("../middleware/authMiddleware");
 const {
   checkTicketAssignment,
   getTicketById,
+  getAllTicketsMiddlware,
 } = require("../middleware/ticketMiddleware");
 
 router.post("/create-ticket", verifyRoles(["user", "admin"]), createTickets);
-router.get("/get-all-tickets", verifyRoles(["admin"]), getAllTickets);
+router.get(
+  "/get-all-tickets",
+  verifyRoles(["admin"]),
+  getAllTicketsMiddlware,
+  getAllTickets
+);
 router.get(
   "/get-assinged-tickets",
   verifyRoles(["engineer"]),
+  getAllTicketsMiddlware("assigned"),
   getAssignedTickets
 );
 router.get(
   "/get-createdby-tickets",
   verifyRoles(["user"]),
+  getAllTicketsMiddlware("created"),
   getCreatedByTickets
 );
 router.put(

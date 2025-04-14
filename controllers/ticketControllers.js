@@ -22,13 +22,7 @@ const createTickets = async (req, res) => {
 
 const getAllTickets = async (req, res) => {
   try {
-    const query = {};
-    if (req.query.status) {
-      query.status = req.query.status;
-    }
-    const tickets = await Ticket.find(query)
-      .populate("assignedTo")
-      .populate("createdBy");
+    const tickets = req.tickets;
     res.status(200).json({
       success: true,
       message: "Ticket List Fetch successfully",
@@ -45,9 +39,7 @@ const getAllTickets = async (req, res) => {
 
 const getAssignedTickets = async (req, res) => {
   try {
-    const tickets = await Ticket.find({ assignedTo: req.userId })
-      .populate("assignedTo")
-      .populate("createdBy");
+    const tickets = req.tickets;
     res.status(200).json({
       success: true,
       message: "Tickets assigned to engineer",
@@ -64,9 +56,7 @@ const getAssignedTickets = async (req, res) => {
 
 const getCreatedByTickets = async (req, res) => {
   try {
-    const tickets = await Ticket.find({ createdBy: req.userId })
-      .populate("assignedTo")
-      .populate("createdBy");
+    const tickets = req.tickets;
     res.status(200).json({
       success: true,
       message: "Tickets assigned to engineer",
@@ -85,9 +75,6 @@ const updateTicket = async (req, res) => {
   const { title, description, department } = req.body;
   try {
     if (req.role === "user") {
-      // console.log("userId", req.userId.toString());
-      // console.log("Ticket userId", req.ticket.createdBy.toString());
-
       if (req.ticket.createdBy.toString() !== req.userId.toString()) {
         res.status(400).json({ success: false, message: "Not created User" });
       }

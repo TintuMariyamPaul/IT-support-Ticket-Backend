@@ -128,7 +128,7 @@ const updateEngineer = async (req, res) => {
 const deleteEngineer = async (req, res) => {
   try {
     const { id } = req.params;
-    const engineer = await Engineers.findByIdAndDelete(id);
+    const engineer = await Engineers.findById(id);
 
     if (!engineer) {
       return res.status(404).json({
@@ -136,6 +136,15 @@ const deleteEngineer = async (req, res) => {
         success: false,
       });
     }
+
+    if (engineer.assignedTickets && engineer.assignedTickets.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Engineer has assigned tickets, cannot delete",
+      });
+    }
+
+    await Engineers.findByIdAndDelete(id);
     res.status(200).json({
       message: "Engineer delete successfully",
       success: true,

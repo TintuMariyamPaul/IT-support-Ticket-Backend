@@ -40,7 +40,7 @@ const createAccount = async (req, res) => {
     // 4. create new UserActivation, save in DB
     const newUser = new User(req.body);
     await newUser.save();
-
+    
     res.status(201).json({
       message: "User created successfully",
       success: true,
@@ -70,7 +70,6 @@ const getAllUsers = async (req, res) => {
     });
   }
 };
-
 
 // Get Single engineer
 const getSingleUser = async (req, res) => {
@@ -102,7 +101,14 @@ const getSingleUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await User.findByIdAndUpdate(
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+    await User.findByIdAndUpdate(
       {
         _id: id,
       },
@@ -110,12 +116,6 @@ const updateUser = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-        success: false,
-      });
-    }
     res.status(200).json({
       message: "User Update successfully",
       success: true,
@@ -153,7 +153,6 @@ const deleteUser = async (req, res) => {
   }
 };
 
-
 // const getAllUsers = async (req, res) => {
 //   try {
 //     const allUsers = await User.find({ _id: { $ne: req.body.userId } }); // here $ne is not equalto , it remove that item from list
@@ -170,4 +169,10 @@ const deleteUser = async (req, res) => {
 //   }
 // };
 
-module.exports = { createAccount, getAllUsers,getSingleUser,deleteUser,updateUser };
+module.exports = {
+  createAccount,
+  getAllUsers,
+  getSingleUser,
+  deleteUser,
+  updateUser,
+};
