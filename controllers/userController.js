@@ -1,23 +1,6 @@
 const User = require("../modals/users");
 const Engineer = require("../modals/engineers");
 const bcrypt = require("bcryptjs");
-// const { tokenVerify } = require("./../middleware/authMiddleware");
-
-// router.get("/get-logged-user", authMiddleware, async (req, res) => {
-//   try {
-//     const user = await User.findOne({ _id: req.body.userId });
-//     res.send({
-//       message: "user fetch successfully",
-//       success: true,
-//       data: user,
-//     });
-//   } catch (error) {
-//     res.status(400).send({
-//       message: error.message,
-//       success: false,
-//     });
-//   }
-// });
 
 //creating ADMIN and USER
 const createAccount = async (req, res) => {
@@ -71,7 +54,6 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-
 // Get Single engineer
 const getSingleUser = async (req, res) => {
   try {
@@ -102,7 +84,14 @@ const getSingleUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await User.findByIdAndUpdate(
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+    await User.findByIdAndUpdate(
       {
         _id: id,
       },
@@ -110,12 +99,6 @@ const updateUser = async (req, res) => {
       { new: true, runValidators: true }
     );
 
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-        success: false,
-      });
-    }
     res.status(200).json({
       message: "User Update successfully",
       success: true,
@@ -153,21 +136,10 @@ const deleteUser = async (req, res) => {
   }
 };
 
-
-// const getAllUsers = async (req, res) => {
-//   try {
-//     const allUsers = await User.find({ _id: { $ne: req.body.userId } }); // here $ne is not equalto , it remove that item from list
-//     res.send({
-//       message: " All users fetch successfully",
-//       success: true,
-//       data: allUsers,
-//     });
-//   } catch (error) {
-//     res.status(400).send({
-//       message: error.message,
-//       success: false,
-//     });
-//   }
-// };
-
-module.exports = { createAccount, getAllUsers,getSingleUser,deleteUser,updateUser };
+module.exports = {
+  createAccount,
+  getAllUsers,
+  getSingleUser,
+  deleteUser,
+  updateUser,
+};
