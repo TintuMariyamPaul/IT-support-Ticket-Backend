@@ -1,6 +1,7 @@
 const Ticket = require("../modals/tickets");
 const Engineer = require("../modals/engineers");
 
+//create Ticket
 const createTickets = async (req, res) => {
   const { title, description, department } = req.body;
   try {
@@ -20,6 +21,7 @@ const createTickets = async (req, res) => {
   }
 };
 
+//get full ticket list
 const getAllTickets = async (req, res) => {
   try {
     const tickets = req.tickets;
@@ -37,6 +39,7 @@ const getAllTickets = async (req, res) => {
   }
 };
 
+// get assigned tickets only
 const getAssignedTickets = async (req, res) => {
   try {
     const tickets = req.tickets;
@@ -54,6 +57,79 @@ const getAssignedTickets = async (req, res) => {
   }
 };
 
+//get latest assigned tickets
+const getLatestAssignedTickets = async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ assignedTo: req.userId })
+      .sort({ updatedAt: -1 })
+      .limit(5)
+      .populate("assignedTo")
+      .populate("createdBy");
+
+    res.status(200).json({
+      success: true,
+      message: "Latest assigned tickets fetched",
+      tickets,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+      success: false,
+    });
+  }
+};
+
+const getLatestCreatedTickets = async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ createdBy: req.userId })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("assignedTo")
+      .populate("createdBy");
+
+    res.status(200).json({
+      success: true,
+      message: "Latest assigned tickets fetched",
+      tickets,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+      success: false,
+    });
+  }
+};
+
+// get assigned Ticket Status for engineer Dashboard
+const getAssignedTicketsStats = async (req, res) => {
+  try {
+    const tickets = req.tickets;
+    const stats = {
+      total: tickets.length,
+      pending: 0,
+      progress: 0,
+      resolved: 0,
+    };
+    tickets.forEach((ticket) => {
+      if (ticket.status === "Assigned") stats.pending++;
+      if (ticket.status === "In Progress") stats.progress++;
+      if (ticket.status === "Completed") stats.resolved++;
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Dashboard ticket stats fetched successfully",
+      stats,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+      success: false,
+    });
+  }
+};
+
+//get created tickets only
 const getCreatedByTickets = async (req, res) => {
   try {
     const tickets = req.tickets;
@@ -71,6 +147,37 @@ const getCreatedByTickets = async (req, res) => {
   }
 };
 
+// get created Ticket Status for user Dashboard
+const getCreatedByTicketsStats = async (req, res) => {
+  try {
+    const tickets = req.tickets;
+    const stats = {
+      total: tickets.length,
+      pending: 0,
+      progress: 0,
+      resolved: 0,
+    };
+    tickets.forEach((ticket) => {
+      if (ticket.status === "Pending") stats.pending++;
+      if (ticket.status === "Assigned") stats.pending++;
+      if (ticket.status === "In Progress") stats.progress++;
+      if (ticket.status === "Completed") stats.resolved++;
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Dashboard ticket stats fetched successfully",
+      stats,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+      success: false,
+    });
+  }
+};
+
+//update tickets
 const updateTicket = async (req, res) => {
   const { title, description, department } = req.body;
   try {
@@ -97,6 +204,7 @@ const updateTicket = async (req, res) => {
   }
 };
 
+//assign Tickt to engineer
 const assignTicket = async (req, res) => {
   const { engineerId } = req.body;
   try {
@@ -135,6 +243,7 @@ const assignTicket = async (req, res) => {
   }
 };
 
+//update status by engineer
 const statusUpdate = async (req, res) => {
   const { status } = req.body;
   const engineerId = req.userId;
@@ -165,6 +274,7 @@ const statusUpdate = async (req, res) => {
   }
 };
 
+//delete Ticket
 const deleteTicket = async (req, res) => {
   try {
     const ticket = req.ticket;
@@ -188,7 +298,11 @@ module.exports = {
   assignTicket,
   getAllTickets,
   getAssignedTickets,
+  getAssignedTicketsStats,
+  getLatestAssignedTickets,
+  getLatestCreatedTickets,
   getCreatedByTickets,
+  getCreatedByTicketsStats,
   updateTicket,
   statusUpdate,
   deleteTicket,

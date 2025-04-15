@@ -23,6 +23,7 @@ const tokenVerify = (req, res, next) => {
 
 const verifyRoles = (allowedRoles = []) => {
   return (req, res, next) => {
+    
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader) {

@@ -1,23 +1,6 @@
 const User = require("../modals/users");
 const Engineer = require("../modals/engineers");
 const bcrypt = require("bcryptjs");
-// const { tokenVerify } = require("./../middleware/authMiddleware");
-
-// router.get("/get-logged-user", authMiddleware, async (req, res) => {
-//   try {
-//     const user = await User.findOne({ _id: req.body.userId });
-//     res.send({
-//       message: "user fetch successfully",
-//       success: true,
-//       data: user,
-//     });
-//   } catch (error) {
-//     res.status(400).send({
-//       message: error.message,
-//       success: false,
-//     });
-//   }
-// });
 
 //creating ADMIN and USER
 const createAccount = async (req, res) => {
@@ -40,7 +23,7 @@ const createAccount = async (req, res) => {
     // 4. create new UserActivation, save in DB
     const newUser = new User(req.body);
     await newUser.save();
-    
+
     res.status(201).json({
       message: "User created successfully",
       success: true,
@@ -152,22 +135,6 @@ const deleteUser = async (req, res) => {
     });
   }
 };
-
-// const getAllUsers = async (req, res) => {
-//   try {
-//     const allUsers = await User.find({ _id: { $ne: req.body.userId } }); // here $ne is not equalto , it remove that item from list
-//     res.send({
-//       message: " All users fetch successfully",
-//       success: true,
-//       data: allUsers,
-//     });
-//   } catch (error) {
-//     res.status(400).send({
-//       message: error.message,
-//       success: false,
-//     });
-//   }
-// };
 
 module.exports = {
   createAccount,
