@@ -9,6 +9,10 @@ const ticketRouter = require("./routes/ticketRoute");
 
 app.use(cors()); // for browser configuration
 app.use(express.json()); // for sending and reciving json response
+// helmet 
+//express limiter -for limit attack 
+//express mongo sanitize
+
 
 app.use("/api/auth", authRouter);
 app.use("/api/admin", adminRouter);

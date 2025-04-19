@@ -2,7 +2,43 @@ const User = require("../modals/users");
 const Engineer = require("../modals/engineers");
 const bcrypt = require("bcryptjs");
 
-//creating ADMIN and USER
+// creating Admin
+const createAdmin = async (req, res) => {
+  try {
+    const { email, password, firstname, lastname } = req.body;
+    const isUser = await User.findOne({ email });
+    const isEngineer = await Engineer.findOne({ email });
+    if (isUser || isEngineer) {
+      return res.status(401).json({
+        message: "User already exist",
+        success: false,
+      });
+    }
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    // req.body.password = hashedPassword;
+
+    // 4. create new UserActivation, save in DB
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+      firstname,
+      lastname,
+      role: "admin",
+    });
+    await newUser.save();
+    res.status(201).json({
+      message: "Admin created successfully",
+      success: true,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+      success: false,
+    });
+  }
+};
+
+//creating USER
 const createAccount = async (req, res) => {
   try {
     // console.log(req.body);
@@ -142,4 +178,5 @@ module.exports = {
   getSingleUser,
   deleteUser,
   updateUser,
+  createAdmin,
 };
