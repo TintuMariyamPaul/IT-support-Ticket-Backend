@@ -5,9 +5,11 @@ const {
   getSingleUser,
   updateUser,
   deleteUser,
+  createAdmin,
 } = require("../controllers/userController");
 const { verifyRoles } = require("../middleware/authMiddleware");
 
+router.post("/create-admin", createAdmin);
 router.post("/create-user", verifyRoles(["admin"]), createAccount);
 router.get("/get-all-users", verifyRoles(["admin"]), getAllUsers);
 router.get("/get-user/:id", verifyRoles(["admin"]), getSingleUser);
